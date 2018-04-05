@@ -1,3 +1,6 @@
+GIT_ADDR=git@github.com:KyroNedyah/CS_6_005_Project1.git
+
+
 PACKAGE=twitter
 
 MAIN=Main
@@ -49,7 +52,7 @@ clean:
 
 git_init:
 	git init
-	make git_prep
+	git remote add origin $(GIT_ADDR)
 
 git_prep:
 	(git add *); test $$? -le 1
@@ -59,3 +62,6 @@ git_prep:
 git_commit: git_prep
 	git commit
 	git log
+
+git_push:
+	git push -u origin master

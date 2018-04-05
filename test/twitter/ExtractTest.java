@@ -21,9 +21,16 @@ public class ExtractTest {
     
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
     private static final Instant d2 = Instant.parse("2016-02-17T11:00:00Z");
+    private static final Instant d3 = Instant.parse("2017-02-17T11:00:00Z");
     
     private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
     private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
+    private static final Tweet tweet3 = new Tweet(3, "whoisthis", "sometweet", d3);
+    private static final Tweet tweet4 = new Tweet(4, "somedude", "yet another tweet", d1);
+    private static final Tweet tweet1Mention = new Tweet(5, "alpha", "hello @bob", d1);
+    private static final Tweet tweet2Mention = new Tweet(6, "beta", "hello @bob and @meg", d1);
+    private static final Tweet tweetFake = new Tweet(7, "gamma", "@me my email hi@google.com oh and @", d1);
+    private static final Tweet tweetHybrid = new Tweet(8, "alpha", "hi @bob is your email bob@bob.bob?", d1);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -59,4 +66,83 @@ public class ExtractTest {
      * keep them in this test class.
      */
 
+	@Test
+	public void testGetTimespanThree()
+	{
+		Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2, tweet3));
+		
+		assertEquals("expected start", d1, timespan.getStart());
+		assertEquals("expected finish", d3, timespan.getEnd());
+	}
+
+	@Test
+	public void testEqualTimespan()
+	{
+		Timespan timespan1 = Extract.getTimespan(Arrays.asList(tweet1, tweet2, tweet3, tweet4));
+		Timespan timespan2 = Extract.getTimespan(Arrays.asList(tweet1, tweet4));
+
+		assertEquals("expected start (1-3)", d1, timespan1.getStart());
+		assertEquals("expected finish (1-3)", d3, timespan1.getEnd());
+		assertEquals("expected start (1-1)", d1, timespan2.getStart());
+		assertEquals("expected finish (1-1)", d1, timespan2.getEnd());
+	}
+
+	@Test
+	public void testGetMentionedUsersOneMention()
+	{
+		Set<String> mentions = Extract.getMentionedUsers(Arrays.asList(tweet1Mention));
+
+		String[] expected = {"@bob"};
+		assertEquals("expected number of mentions", expected.length, mentions.size());
+		for(String mention : expected)
+		{
+			assertTrue("expected mention: " + mention, mentions.contains(mention));
+		}
+	}
+
+	@Test
+	public void testGetMentionedUsersManyMentioned()
+	{
+		Set<String> mentions = Extract.getMentionedUsers(Arrays.asList(tweet2Mention));
+
+		String[] expected = {"@bob", "@meg"};
+		assertEquals("expected number of mentions", expected.length, mentions.size());
+		for(String mention : expected)
+		{
+			assertTrue("expected mention: " + mention, mentions.contains(mention));
+		}
+	}
+
+	@Test
+	public void testGetMentionedUserDuplicates()
+	{
+		Set<String> mentions = Extract.getMentionedUsers(Arrays.asList(tweet1Mention, tweet2Mention));
+
+		String[] expected = {"@bob", "@meg"};
+		assertEquals("expected number of mentions", expected.length, mentions.size());
+		for(String mention : expected)
+		{
+			assertTrue("expected mention: " + mention, mentions.contains(mention));
+		}
+	}
+
+	@Test
+	public void testGetMentionedUsersFakeMention()
+	{
+		Set<String> mentions = Extract.getMentionedUsers(Arrays.asList(tweetFake));
+		assertTrue("expected empty", mentions.isEmpty());
+	}
+
+	@Test
+	public void testGetMentionedUsersHybridMention()
+	{
+		Set<String> mentions = Extract.getMentionedUsers(Arrays.asList(tweetHybrid));
+
+		String[] expected = {"@bob"};
+		assertEquals("expected number of mentions", expected.length, mentions.size());
+		for(String mention : expected)
+		{
+			assertTrue("expected mention: " + mention, mentions.contains(mention));
+		}
+	}
 }

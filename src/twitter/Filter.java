@@ -4,6 +4,7 @@
 package twitter;
 
 import java.util.List;
+import java.util.LinkedList;
 
 /**
  * Filter consists of methods that filter a list of tweets for those matching a
@@ -27,7 +28,17 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
-        throw new RuntimeException("not implemented");
+	List<Tweet> matches = new LinkedList<Tweet>();
+
+	for(Tweet tweet : tweets)
+	{
+		if(tweet.getAuthor().equalsIgnoreCase(username))
+		{
+			matches.add(tweet);
+		}
+	}
+
+	return matches;
     }
 
     /**
@@ -41,7 +52,18 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
-        throw new RuntimeException("not implemented");
+	List<Tweet> matches = new LinkedList<Tweet>();
+
+	for(Tweet tweet : tweets)
+	{
+		if(tweet.getTimestamp().compareTo(timespan.getStart()) >= 0 &&
+			tweet.getTimestamp().compareTo(timespan.getEnd()) <= 0)
+		{
+			matches.add(tweet);
+		}
+	}
+
+	return matches;
     }
 
     /**
@@ -60,7 +82,56 @@ public class Filter {
      *         same order as in the input list.
      */
     public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
-        throw new RuntimeException("not implemented");
-    }
+	List<Tweet> matches = new LinkedList<Tweet>();
 
+	for(Tweet tweet: tweets)
+	{
+		boolean success = false;
+		for(String w : words)
+		{
+			String text = tweet.getText().toLowerCase();
+			String word = w.toLowerCase();
+
+			int index = 0;
+			while((index = text.indexOf(word, index)) >= 0 && !success)
+			{
+				if(index == 0)
+				{
+					if(index + word.length() >= text.length())
+					{
+						success = true;
+						break;
+					}
+					else if(text.charAt(index+word.length()) == ' ')
+					{
+						success = true;
+						break;
+					}
+				}
+				else if(text.charAt(index-1) == ' ')
+				{
+					if(index + word.length() >= text.length())
+					{
+						success = true;
+						break;
+					}
+					else if(text.charAt(index + word.length()) == ' ')
+					{
+						success = true;
+						break;
+					}
+				}
+				index++;
+			}
+
+			if(success)
+			{
+				matches.add(tweet);
+				break;
+			}
+		}
+	}
+	
+	return matches;
+    }
 }
